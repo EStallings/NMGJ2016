@@ -1,1 +1,35 @@
-todo make shit
+<meta charset="UTF-8"><style>*{position:"absolute";margin:0px}</style><script>
+
+/*+==  UTILITIES  ===================================================================================================+*/
+
+	let gfx = () => document.createElement`canvas`.getContext`2d`;
+
+	let requestFrame = () => {
+		if (!frameRendered) return;
+		frameRendered = false;
+		requestAnimationFrame(render);
+	}, frameRendered = true;
+
+	onresize = evt => {
+		topGfx.canvas.width  = innerWidth;
+		topGfx.canvas.height = innerHeight;
+		requestFrame();
+	};
+
+/*+==  VARS  ========================================================================================================+*/
+
+	let topGfx = gfx();
+	document.documentElement.appendChild(topGfx.canvas);
+
+/*+==  RENDERING  ===================================================================================================+*/
+
+	let render = () => {
+		topGfx.fillRect(10,10,innerWidth-20,innerHeight-20);
+		frameRendered = true;
+	};
+
+	onresize();
+
+/*+==================================================================================================================+*/
+
+</script>
