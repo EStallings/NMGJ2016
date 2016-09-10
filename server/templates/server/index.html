@@ -1,5 +1,9 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>{% csrf_token %}
 <meta charset="UTF-8"><style>*{position:absolute;margin:0px}</style><body></body><script>
-
+	{% autoescape off %}
+		GAME_INFO = {{ game_info}}
+	{% endautoescape %}
+	PLAYER_INFO = null;
 /*+==================================================================================================================+*\
 
 	drawing options:
@@ -87,6 +91,105 @@
 	onresize();
 
 /*+==================================================================================================================+*/
+	
+	function getBase64Image() {
+    var canvas = document.createElement("canvas");
+    canvas.width = imgElem.clientWidth;
+    canvas.height = imgElem.clientHeight;
+    var ctx = canvas.getContext("2d");
+    ctx.fillRect(0, 0, 50, 50);
+    var dataURL = canvas.toDataURL("image/png");
+    return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+}
+
+
+// NETWORKING FUNCTIONS //
+
+/* Endpoints:
+*	numPlayers
+*		returns number of players in a game
+*	join
+*		called when FIRST joining a game. Subsequence joins should not be sent to server, as we can just use the player info cached in localstorage
+*	reconnect
+*		called when NOT FIRST joining a game, ie, we already have PLAYER_INFO set. If this fails, we should be redirected to the homepage to start a new game (either attempting to rejoin a game that's ended, or one that's in-progress)
+*	game
+*		get the current info for the current game
+*	player
+*		get the current info for the current player
+*	players
+*		gets current info for all players
+*	ready
+*		lets server know that you are ready for game to start. Does nothing once game has started
+*	submitImage
+*		send image to server.
+*	submitCaption
+*		send caption to server
+*	check
+*		check for an update of any kind. Will come back as an array of updates. Types of updates:
+*			TurnEnded: the turn is over, all players did a submitImage or submitCaption (or time ran out and what they had was auto-submitted). This update will include either a new image or new caption to use as reference.
+*			PlayerListUpdate: A generic update for the status of all players. Players leaving, joining, readying or unreadying, changing display names, will all come through this
+*			GameStarted: Similar to TurnEnded, but without an initial prompt. Will instead tell the game whether to start with a caption or an image.
+*			GameEnded: Similar to TurnEnded, but with a gallery of all captions and images, to be browsed or automatically slideshowed, whatever method is implemented
+*		
+*		Note: if 'check' isn't received in over 5 seconds during the initial join-game phase, the player will be counted as having left		
+*	
+*	setTurnLength
+*		sets the turn length in seconds
+*		
+*/
+//Internal function to use everywhere
+function makeAPICall(endpoint, data, callback) {
+	endpoint = endpoint || "";
+	data = data || null;
+	callback = callback || function(data) {console.log(data)};
+	url = 'api/' + GAME_INFO[0].fields.name + '/' + GAME_INFO[0].fields.secret + '/' + endpoint;
+	console.log("API: " + url);
+	$.post(url, data, callback);
+}
+
+//Call me on page load
+function joinOrRestorePlayer() {
+	var storageName = GAME_INFO[0].fields.name;
+	try {
+		PLAYER_INFO = JSON.parse(localStorage.getItem(GAME_INFO[0].fields.name));
+	}
+	catch (e) {
+		PLAYER_INFO = null
+	}
+	if(PLAYER_INFO) {
+		var sendDataPacket = {'player_pk' : PLAYER_INFO[0].pk, 'player_secret' : PLAYER_INFO[0].fields.secret} 
+		return makeAPICall('reconnect', sendDataPacket, function(data){
+			if(data.error) {
+				Debug.Log("Error reconnecting: " + data.error);
+				localStorage.removeItem(storageName);
+				window.location.href = '/'; //redirect to root for a new game
+			}
+			else if(data.player_info) {
+				PLAYER_INFO = data.player_info;
+				localStorage.setItem(storageName, JSON.stringify(PLAYER_INFO));
+			}
+		});
+	}
+
+	makeAPICall('join', null, function(data){
+		if(data.error) {
+			Debug.Log("Error joining: " + data.error);
+			window.location.href = '/';
+		}
+		else if(data.player_info) {
+			PLAYER_INFO = data.player_info;
+			localStorage.setItem(storageName, JSON.stringify(PLAYER_INFO));
+		}
+	});
+}
+
+window.onload=joinOrRestorePlayer
+
+//cookie bullshit needed for POST methods
+function csrfSafeMethod(method) {return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));}
+$.ajaxSetup({beforeSend: function(xhr, settings) {if (!csrfSafeMethod(settings.type) && !this.crossDomain) {xhr.setRequestHeader("X-CSRFToken", csrftoken);}}});
+function getCookie(name) {var cookieValue = null;if (document.cookie && document.cookie !== '') {var cookies = document.cookie.split(';');for (var i = 0; i < cookies.length; i++) {var cookie = jQuery.trim(cookies[i]);if (cookie.substring(0, name.length + 1) === (name + '=')) {cookieValue = decodeURIComponent(cookie.substring(name.length + 1));break;}}}return cookieValue;}
+var csrftoken = getCookie('csrftoken');
 
 
 </script>
