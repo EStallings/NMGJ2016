@@ -1,6 +1,19 @@
-<meta charset="UTF-8"><style>*{position:"absolute";margin:0px}</style><script>
-	
-/*+==  UTILITIES  ===================================================================================================+*/
+<meta charset="UTF-8"><style>*{position:absolute;margin:0px}</style><body></body><script>
+
+/*+==================================================================================================================+*\
+
+	drawing options:
+		colors
+		line width
+		transparency
+		
+
+\*+==  UTILITIES  ===================================================================================================+*/
+
+	CanvasRenderingContext2D.prototype.rgb = function (r,g=r,b=g,a=1) {
+		this.fillStyle = this.strokeStyle = `rgba(${~~(r*255)},${~~(g*255)},${~~(b*255)},${a})`;
+		this.shadowColor =                  `rgba(${~~(r*255)},${~~(g*255)},${~~(b*255)},1)`;
+	};
 
 	let gfx = () => document.createElement`canvas`.getContext`2d`;
 
@@ -11,20 +24,63 @@
 	}, frameRendered = true;
 
 	onresize = evt => {
-		topGfx.canvas.width  = innerWidth;
-		topGfx.canvas.height = innerHeight;
+		drawing.canvas.width  = stroke.canvas.width  = innerWidth;
+		drawing.canvas.height = stroke.canvas.height = innerHeight;
 		requestFrame();
 	};
 
 /*+==  VARS  ========================================================================================================+*/
 
-	let topGfx = gfx();
-	document.documentElement.appendChild(topGfx.canvas);
+	let drawing = gfx();
+	let stroke = gfx();
+	document.body.appendChild(drawing.canvas);
+	document.body.appendChild(stroke.canvas);
+	document.bgColor = "#ccc";
+
+	let colorLs = [[0,0,0],[1,1,1],[1,0,0],[0,1,0],[0,0,1],[1,1,0]];
+	let currentColor = 0;
+
+/*+==  CONTROLS  ====================================================================================================+*/
+
+	let isMouseDown = false;
+	let strokeLs;
+
+	onmousedown = evt => {
+		isMouseDown = true;
+		strokeLs = [[evt.clientX,evt.clientY]];
+	};
+
+	onmousemove = evt => {
+		if (!isMouseDown) return;
+		strokeLs.push([evt.clientX,evt.clientY]);
+
+		stroke.lineWidth = 16;
+		stroke.lineCap = "round";
+		stroke.lineJoin = "round";
+		stroke.shadowBlur = 4;
+		stroke.rgb(...colorLs[currentColor],0.5);
+
+		stroke.clearRect(0,0,innerWidth,innerHeight);
+		stroke.beginPath();
+		strokeLs.map((e,i)=>i?stroke.lineTo(...e):stroke.moveTo(...e));
+		stroke.stroke();
+	};
+
+	onmouseup = onmouseout = evt => {
+		isMouseDown = false;
+		drawing.drawImage(stroke.canvas,0,0);
+		stroke.clearRect(0,0,innerWidth,innerHeight);
+	};
+
+	onkeydown = evt => {
+		switch (evt.key) {
+			case "q": currentColor = (currentColor+1)%colorLs.length; break;
+		}
+	};
 
 /*+==  RENDERING  ===================================================================================================+*/
 
 	let render = () => {
-		topGfx.fillRect(10,10,innerWidth-20,innerHeight-20);
 		frameRendered = true;
 	};
 
