@@ -1,6 +1,14 @@
-<meta charset="UTF-8"><style>*{position:"absolute";margin:0px}</style><script>
+<meta charset="UTF-8"><style>*{position:absolute;margin:0px}</style><script>
 
-/*+==  UTILITIES  ===================================================================================================+*/
+/*+==================================================================================================================+*\
+
+	drawing options:
+		colors
+		line width
+		transparency
+		
+
+\*+==  UTILITIES  ===================================================================================================+*/
 
 	let gfx = () => document.createElement`canvas`.getContext`2d`;
 
@@ -21,10 +29,34 @@
 	let topGfx = gfx();
 	document.documentElement.appendChild(topGfx.canvas);
 
+/*+==  CONTROLS  ====================================================================================================+*/
+
+	let mousePos, isMouseDown = false;
+
+	onmouseup = onmouseout = evt => isMouseDown = false;
+
+	onmousedown = evt => {
+		isMouseDown = true;
+		mousePos = [evt.clientX,evt.clientY];
+	};
+
+	onmousemove = evt => {
+		if (!isMouseDown) return;
+
+		topGfx.lineWidth = 10;
+		topGfx.lineCap = "round";
+		topGfx.strokeStyle = "rgba(0,0,0,0.03)";
+
+		topGfx.beginPath();
+		topGfx.moveTo(...mousePos);
+		mousePos = [evt.clientX,evt.clientY];
+		topGfx.lineTo(...mousePos);
+		topGfx.stroke();
+	};
+
 /*+==  RENDERING  ===================================================================================================+*/
 
 	let render = () => {
-		topGfx.fillRect(10,10,innerWidth-20,innerHeight-20);
 		frameRendered = true;
 	};
 
