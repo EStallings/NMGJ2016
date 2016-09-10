@@ -21,5 +21,12 @@ from . import settings
 
 urlpatterns = [
 	url(r'^admin/', admin.site.urls),
+	url(r'^api/$', views.api_test),
+	url(r'^api/(?P<gameURL>.+)/(?P<secret>.+)/game$', views.api_getGame, name='api-getgame'),
+	url(r'^api/(?P<gameURL>.+)/(?P<secret>.+)/join$', views.api_join, name='api-join'),
+	url(r'^api/(?P<gameURL>.+)/(?P<secret>.+)/reconnect$', views.api_reconnect, name='api-reconnect'),
+	url(r'^api/(?P<gameURL>.+)/(?P<secret>.+)/numPlayers$', views.api_numPlayers, name='api-numPlayers'),
+	url(r'^api/(?P<gameURL>.+)/(?P<secret>.+)/ready$', views.api_ready, name='api-ready'),
+	url(r'^(?P<gameURL>.+)$', views.game, name='game'),
 	url(r'^$', views.index, name='index')
 ]
