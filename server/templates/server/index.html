@@ -105,6 +105,13 @@
 
 // NETWORKING FUNCTIONS //
 
+function setPlayerName(name) {
+	makeAPICall('updatePlayer', {name:name, player_pk:PLAYER_INFO[0].pk, player_secret:PLAYER_INFO[0].fields.secret}, function(data) {
+		if(data.success)
+			PLAYER_INFO[0].fields.name = name;
+	});
+}
+
 /* Endpoints:
 *	numPlayers
 *		returns number of players in a game
@@ -134,7 +141,7 @@
 *		Note: if 'check' isn't received in over 5 seconds during the initial join-game phase, the player will be counted as having left		
 *	
 *	setTurnLength
-*		sets the turn length in seconds
+*		sets the turn length in seconds. need to provide 'seconds' as a field in data
 *		
 */
 //Internal function to use everywhere

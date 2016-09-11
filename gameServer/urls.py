@@ -26,7 +26,8 @@ urlpatterns = [
 	url(r'^api/(?P<gameURL>.+)/(?P<secret>.+)/join$', views.api_join, name='api-join'),
 	url(r'^api/(?P<gameURL>.+)/(?P<secret>.+)/reconnect$', views.api_reconnect, name='api-reconnect'),
 	url(r'^api/(?P<gameURL>.+)/(?P<secret>.+)/numPlayers$', views.api_numPlayers, name='api-numPlayers'),
-	url(r'^api/(?P<gameURL>.+)/(?P<secret>.+)/ready$', views.api_ready, name='api-ready'),
+	url(r'^api/(?P<gameURL>.+)/(?P<secret>.+)/updatePlayer$', views.api_updatePlayer, name='api-updatePlayer'),
+	url(r'^api/(?P<gameURL>.+)/(?P<secret>.+)/players$', views.api_getPlayers, name='api-getPlayers'),
 	url(r'^(?P<gameURL>.+)$', views.game, name='game'),
 	url(r'^$', views.index, name='index')
 ]
